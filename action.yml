@@ -1,7 +1,7 @@
 name: 'Build Vue'
 description: 'Build Vuejs for Umbraco V8'
 inputs:
-  vue-dir:
+  vue-directory:
     description: 'Path to the vue directory'
     required: true
   cd-path-vue:
