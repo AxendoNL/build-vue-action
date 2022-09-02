@@ -18,12 +18,7 @@ env:
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '12'
-        cache: 'npm'
-        cache-dependency-path: ${{ inputs.cd-path-vue == '' && '**/**.Vue/npm-shrinkwrap.json' || inputs.cd-path-vue }}
-        
+  
     ### Get latest git commit with changes to vue project
     - id: VUE_HASH
       run: echo "::set-output name=hash::$(git log -1 --pretty=format:'%h' --follow '${{ inputs.vue-directory }}')"
@@ -39,10 +34,17 @@ runs:
       id: CACHE_VUE
       uses: actions/cache@v3
       with:
-        path: "${{ inputs.app-path }}\${{ env.vue-folder }}"
+        path: "${{ inputs.app-path }}\\${{ env.vue-folder }}"
         key: vue-cache-${{steps.VUE_HASH.outputs.hash}}
     
     ### below if will make sure this only runs when the vue apps need to be build 
+    - uses: actions/setup-node@v3
+      if: steps.CACHE_VUE.outputs.cache-hit != 'true'
+      with:
+        node-version: '12'
+        cache: 'npm'
+        cache-dependency-path: ${{ inputs.cd-path-vue == '' && '**/**.Vue/npm-shrinkwrap.json' || inputs.cd-path-vue }}
+    
     - name: NPM install
       if: steps.CACHE_VUE.outputs.cache-hit != 'true'
       run: npm install
