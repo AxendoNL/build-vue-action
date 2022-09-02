@@ -1,26 +1,56 @@
 name: 'Build Vue'
-description: 'Build Vuejs for Umbraco V8'
+description: 'Build Vue for Umbraco V10'
 inputs:
-  vue-dir:
+  vue-directory:
     description: 'Path to the vue directory'
     required: true
-  cd-path:
+  cd-path-vue:
     description: 'NPM cache dependency path'
     required: true
     default: '**/**.Vue/npm-shrinkwrap.json'
+  app-path: 
+    description: 'path to web application (usually the .web project)'
+    required: true
+
+env: 
+  vue-folder: "vue-apps"
+    
 runs:
   using: "composite"
   steps:
+    ### Get latest git commit with changes to vue project
+    - id: VUE_HASH
+      run: echo "::set-output name=hash::$(git log -1 --pretty=format:'%h' --follow '${{ inputs.vue-directory }}')"
+      shell: powershell
+    
+    ### First make sure the directory vue-apps exists, this is needed or cache action will throw an error
+    - name: Create Directory.
+      run: New-Item -Path "${{ inputs.app-path }}\\wwwroot" -Name "${{ env.vue-folder }}" -ItemType "directory" -Force
+      shell: powershell
+        
+    ### Check cache action for existing vue build
+    - name: Cache Vue Build
+      id: CACHE_VUE
+      uses: actions/cache@v3
+      with:
+        path: "${{ inputs.app-path }}\\wwwroot\\${{ env.vue-folder }}"
+        key: vue-cache-${{steps.VUE_HASH.outputs.hash}}
+    
+    ### below if will make sure this only runs when the vue apps need to be build 
     - uses: actions/setup-node@v3
+      if: steps.CACHE_VUE.outputs.cache-hit != 'true'
       with:
         node-version: '12'
         cache: 'npm'
-        cache-dependency-path: ${{ inputs.cd-path == '' && '**/**.Vue/npm-shrinkwrap.json' || inputs.cd-path }}
+        cache-dependency-path: ${{ inputs.cd-path-vue == '' && '**/**.Vue/npm-shrinkwrap.json' || inputs.cd-path-vue }}
+  
     - name: NPM install
+      if: steps.CACHE_VUE.outputs.cache-hit != 'true'
       run: npm install
-      working-directory: ${{ inputs.vue-dir }}
+      working-directory: ${{ inputs.vue-directory }}
       shell: powershell
     - name: Run webpack
+      if: steps.CACHE_VUE.outputs.cache-hit != 'true'
       run: npm run build-prod
-      working-directory: ${{ inputs.vue-dir }}
+      working-directory: ${{ inputs.vue-directory }}
       shell: powershell
