@@ -11,9 +11,10 @@ inputs:
   app-path: 
     description: 'path to web application (usually the .web project)'
     required: true
-    
-env: 
-  vue-folder: "vue-apps"
+  vue-folder:
+    description: 'name of the projects vue-folder'
+    required: false
+    default: 'vue-apps'
     
 runs:
   using: "composite"
@@ -26,7 +27,7 @@ runs:
     
     ### First make sure the directory vue-apps exists, this is needed or cache action will throw an error
     - name: Create Directory.
-      run: New-Item -Path "${{ inputs.app-path }}" -Name "${{ env.vue-folder }}" -ItemType "directory" -Force
+      run: New-Item -Path "${{ inputs.app-path }}" -Name "${{ inputs.vue-folder }}" -ItemType "directory" -Force
       shell: powershell
         
     ### Check cache action for existing vue build
@@ -34,7 +35,7 @@ runs:
       id: CACHE_VUE
       uses: actions/cache@v3
       with:
-        path: "${{ inputs.app-path }}\\${{ env.vue-folder }}"
+        path: "${{ inputs.app-path }}\\${{ inputs.vue-folder }}"
         key: vue-cache-${{steps.VUE_HASH.outputs.hash}}
     
     ### below if will make sure this only runs when the vue apps need to be build 
