@@ -22,7 +22,7 @@ runs:
   
     ### Get latest git commit with changes to vue project
     - id: VUE_HASH
-      run: echo "::set-output name=hash::$(git log -1 --pretty=format:'%h' --follow '${{ inputs.vue-directory }}')"
+      run: echo "hash=$(git log -1 --pretty=format:'%h' --follow '${{ inputs.vue-directory }}')" >> $env:GITHUB_OUTPUT # AXDEVOPS-16: replacement for set-output     
       shell: powershell
     
     ### First make sure the directory vue-apps exists, this is needed or cache action will throw an error
