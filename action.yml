@@ -11,21 +11,22 @@ inputs:
   app-path: 
     description: 'path to web application (usually the .web project)'
     required: true
-
-env: 
-  vue-folder: "vue-apps"
+  vue-folder:
+    description: 'name of the projects vue-folder'
+    required: false
+    default: 'vue-apps'
     
 runs:
   using: "composite"
   steps:
     ### Get latest git commit with changes to vue project
     - id: VUE_HASH
-      run: echo "::set-output name=hash::$(git log -1 --pretty=format:'%h' --follow '${{ inputs.vue-directory }}')"
+      run: echo "hash=$(git log -1 --pretty=format:'%h' --follow '${{ inputs.vue-directory }}')" >> $env:GITHUB_OUTPUT # AXDEVOPS-16: replacement for set-output   
       shell: powershell
     
     ### First make sure the directory vue-apps exists, this is needed or cache action will throw an error
     - name: Create Directory.
-      run: New-Item -Path "${{ inputs.app-path }}\\wwwroot" -Name "${{ env.vue-folder }}" -ItemType "directory" -Force
+      run: New-Item -Path "${{ inputs.app-path }}\\wwwroot" -Name "${{ inputs.vue-folder }}" -ItemType "directory" -Force
       shell: powershell
         
     ### Check cache action for existing vue build
@@ -33,7 +34,7 @@ runs:
       id: CACHE_VUE
       uses: actions/cache@v3
       with:
-        path: "${{ inputs.app-path }}\\wwwroot\\${{ env.vue-folder }}"
+        path: "${{ inputs.app-path }}\\wwwroot\\${{ inputs.vue-folder }}"
         key: vue-cache-${{steps.VUE_HASH.outputs.hash}}
     
     ### below if will make sure this only runs when the vue apps need to be build 
