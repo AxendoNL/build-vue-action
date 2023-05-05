@@ -7,7 +7,7 @@ inputs:
   cd-path-vue:
     description: 'NPM cache dependency path'
     required: true
-    default: '**/**.Vue/npm-shrinkwrap.json'
+    default: '**/**.Vue/package-lock.json'
   app-path: 
     description: 'path to web application (usually the .web project)'
     required: true
@@ -42,9 +42,9 @@ runs:
     - uses: actions/setup-node@v3
       if: steps.CACHE_VUE.outputs.cache-hit != 'true'
       with:
-        node-version: '12'
+        node-version: '16'
         cache: 'npm'
-        cache-dependency-path: ${{ inputs.cd-path-vue == '' && '**/**.Vue/npm-shrinkwrap.json' || inputs.cd-path-vue }}
+        cache-dependency-path: ${{ inputs.cd-path-vue == '' && '**/**.Vue/package-lock.json' || inputs.cd-path-vue }}
   
     - name: NPM install
       if: steps.CACHE_VUE.outputs.cache-hit != 'true'
